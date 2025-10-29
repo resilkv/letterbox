@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "189140151613",
+    "project_id": "letterbox-96310",
+    "storage_bucket": "letterbox-96310.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:189140151613:android:c18fb911a067e5d41f6954",
+        "android_client_info": {
+          "package_name": "letterbox.android"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCxUOQZK5eenLiBPw6E0UyQZM3TtABsoxg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
