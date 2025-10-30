@@ -1,4 +1,4 @@
-package com.example.letterbox
+package com.letterbox.android
 
 import io.flutter.embedding.android.FlutterActivity
 
