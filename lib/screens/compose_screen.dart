@@ -1,109 +1,78 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'package:uuid/uuid.dart';
-import '../services/auth_service.dart';
-import '../services/letter_service.dart';
-import '../models/letter.dart';
+import 'postcard_selection.dart';
+import 'postcard_editor.dart';
+import 'postcard_preview.dart';
+import '../models/postcard_template.dart';
 
-class ComposeScreen extends StatefulWidget {
-  const ComposeScreen({super.key});
+class PostcardApp extends StatefulWidget {
+  const PostcardApp({super.key});
 
   @override
-  State<ComposeScreen> createState() => _ComposeScreenState();
+  State<PostcardApp> createState() => _PostcardAppState();
 }
 
-class _ComposeScreenState extends State<ComposeScreen> {
-  final _to = TextEditingController();
-  final _message = TextEditingController();
-  bool _loading = false;
-  String? _error;
+class _PostcardAppState extends State<PostcardApp> {
+  String currentView = "selection"; // selection | editor | preview
+  PostcardTemplate? selectedTemplate;
+  String message = "";
+  String address = "";
 
-  @override
-  Widget build(BuildContext context) {
-    final auth = Provider.of<AuthService>(context);
-    final letterService = Provider.of<LetterService>(context, listen: false);
+  void handleSelectTemplate(PostcardTemplate template) {
+    setState(() {
+      selectedTemplate = template;
+      currentView = "editor";
+    });
+  }
 
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        children: [
-          TextField(
-            controller: _to,
-            decoration: const InputDecoration(labelText: 'Recipient Email'),
-          ),
-          const SizedBox(height: 12),
-          Expanded(
-            child: TextField(
-              controller: _message,
-              decoration: const InputDecoration(labelText: 'Write your letter...'),
-              maxLines: null,
-              expands: true,
-            ),
-          ),
-          if (_error != null)
-            Text(
-              _error!,
-              style: const TextStyle(color: Colors.red),
-            ),
-          const SizedBox(height: 12),
-          ElevatedButton(
-            onPressed: _loading
-                ? null
-                : () async {
-                    setState(() {
-                      _loading = true;
-                      _error = null;
-                    });
+  void handleBackToSelection() {
+    setState(() {
+      currentView = "selection";
+      selectedTemplate = null;
+      message = "";
+      address = "";
+    });
+  }
 
-                    final sender = auth.user;
-                    if (sender == null) {
-                      setState(() {
-                        _error = 'You must be logged in';
-                        _loading = false;
-                      });
-                      return;
-                    }
+  void handlePreview(String msg, String addr) {
+    setState(() {
+      message = msg;
+      address = addr;
+      currentView = "preview";
+    });
+  }
 
-                    try {
-                      final id = const Uuid().v4();
-                      final l = Letter(
-                        id: id,
-                        senderId: sender.uid,
-                        senderName: sender.email ?? '',
-                        receiverId: _to.text.trim(), // demo: using receiver email as ID
-                        receiverName: _to.text.trim(),
-                        message: _message.text.trim(),
-                        sentAt: DateTime.now(),
-                        status: 'sent',
-                      );
-
-                      await letterService.sendLetter(l);
-
-                      _message.clear();
-                      _to.clear();
-
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Letter sent successfully!')),
-                      );
-                    } catch (e) {
-                      setState(() => _error = 'Failed to send letter: $e');
-                    } finally {
-                      setState(() => _loading = false);
-                    }
-                  },
-            child: _loading
-                ? const CircularProgressIndicator(color: Colors.white)
-                : const Text('Send Letter'),
-          ),
-        ],
-      ),
-    );
+  void handleBackToEditor() {
+    setState(() {
+      currentView = "editor";
+    });
   }
 
   @override
-  void dispose() {
-    _to.dispose();
-    _message.dispose();
-    super.dispose();
+  Widget build(BuildContext context) {
+    Widget body;
+
+    if (currentView == "selection") {
+      body = PostcardSelection(onSelect: handleSelectTemplate);
+    } else if (currentView == "editor" && selectedTemplate != null) {
+      body = PostcardEditor(
+        template: selectedTemplate!,
+        onBack: handleBackToSelection,
+        onPreview: handlePreview,
+      );
+    } else if (currentView == "preview" && selectedTemplate != null) {
+      body = PostcardPreview(
+        template: selectedTemplate!,
+        message: message,
+        address: address,
+        onBack: handleBackToEditor,
+      );
+    } else {
+      body = const Center(child: CircularProgressIndicator());
+    }
+
+    return Scaffold(
+      backgroundColor: const Color(0xFFF8F6F9),
+      body: SafeArea(child: body),
+    );
   }
 }

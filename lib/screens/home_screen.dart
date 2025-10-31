@@ -17,13 +17,13 @@ class _HomeScreenState extends State<HomeScreen> {
 
   final pages = const [
     InboxScreen(),
-    ComposeScreen(),
+    PostcardApp(),
     OutboxScreen(),
   ];
 
   @override
   Widget build(BuildContext context) {
-    final auth = Provider.of<AuthService>(context);
+    final auth = Provider.of<AuthService>(context, listen: false);
 
     return Scaffold(
       appBar: AppBar(
@@ -31,7 +31,8 @@ class _HomeScreenState extends State<HomeScreen> {
         actions: [
           IconButton(
             onPressed: () async {
-              await auth.signOut();
+              auth.signOut();
+              if (!mounted) return;
               Navigator.pushReplacementNamed(context, '/');
             },
             icon: const Icon(Icons.logout),
